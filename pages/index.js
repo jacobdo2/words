@@ -1,65 +1,76 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import {useState} from 'react'
+
+const buttonStyle = {
+  marginTop: 16,
+  height: 72,
+  fontSize: 32,
+  width: 'calc(100% - 32px)',
+  background: '#44a6c6',
+  border: 0,
+  color: 'white'
+}
+
 
 export default function Home() {
+
+  const [word, setWord] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [hasError, setHasError] = useState(false);
+  const [didSave, setDidSave] = useState(false);
+
+  const handleAdd = async () => {
+    setIsSaving(true);
+    setHasError(false)
+    setDidSave(false);
+    const response = await fetch(`/api/add?word=${word}`);
+    setIsSaving(false)
+    if (!response.ok || (await response.json()).status === 'error') {
+      setHasError(true)
+      return;
+    }
+    setWord('')
+    setDidSave(true);
+
+  }
+
+  const handleExport = async () => {
+    const response = await fetch(`/api/getAll`)
+    if (response.ok) {
+      const { data } = await response.json()
+      let words = [...data]
+      const randomWords = []
+
+      for(let i = 10; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * words.length)
+        randomWords.push(words[randomIndex])
+        words = [...words.slice(0, randomIndex), ...words.slice(randomIndex + 1)]
+      }
+
+      await navigator.clipboard.writeText(randomWords.join(','))
+    }
+  }
+
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 500, width: 'calc(100vw - 16px)', margin: 'auto', fontFamily: 'sans-serif'}}>
+      <h1 style={{ fontSize: 100, transform: 'rotate(1deg)'}}>WORDS</h1>
+      <input
+        style={{
+          fontSize: 42,
+          transform: 'rotate(-0.5deg)',
+          padding: 16,
+          border: '2px solid black'
+        }}
+        disabled={isSaving} value={word} onKeyPress={e => e.key === 'Enter' && handleAdd()} onChange={e => setWord(e.target.value)} placeholder="your cool word..." />
+      {hasError &&
+        <p style={{
+          color:'red',
+          width: '100%',
+          display: 'flex',
+          marginLeft: 32,
+           transform: 'rotate(-1deg)'}}>Will not save that bs</p>}
+      {didSave && <p style={{ color:'green', width: '100%', display: 'flex', marginLeft: 32}}>Cool word bro</p>}
+      <button style={{...buttonStyle, transform: 'rotate(0.5deg)'}} disabled={isSaving} onClick={handleAdd}>Press or hit ⏎ to add</button>
+      <button style={{...buttonStyle, background: 'green', transform: 'rotate(1deg)'}} onClick={handleExport}>Export random 50 words</button>
     </div>
   )
 }
