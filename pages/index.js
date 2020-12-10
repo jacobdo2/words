@@ -17,6 +17,7 @@ export default function Home() {
   const [isSaving, setIsSaving] = useState(false)
   const [hasError, setHasError] = useState(false);
   const [didSave, setDidSave] = useState(false);
+  const [didCopy, setDidCopy] = useState(false);
 
   const handleAdd = async () => {
     setIsSaving(true);
@@ -40,13 +41,21 @@ export default function Home() {
       let words = [...data]
       const randomWords = []
 
-      for(let i = 10; i > 0; i--) {
+      for(let i = 50; i > 0; i--) {
         const randomIndex = Math.floor(Math.random() * words.length)
         randomWords.push(words[randomIndex])
         words = [...words.slice(0, randomIndex), ...words.slice(randomIndex + 1)]
+
+        if (words.length === 0) i = 0;
       }
 
-      await navigator.clipboard.writeText(randomWords.join(','))
+      await navigator.clipboard.writeText(randomWords.filter(w => w !== '').join(',')).then(
+        () => {
+            setDidCopy(true);
+            setTimeout(() => {
+              setDidCopy(false)
+            }, 3000)
+          })
     }
   }
 
@@ -71,6 +80,7 @@ export default function Home() {
       {didSave && <p style={{ color:'green', width: '100%', display: 'flex', marginLeft: 32}}>Cool word bro</p>}
       <button style={{...buttonStyle, transform: 'rotate(0.5deg)'}} disabled={isSaving} onClick={handleAdd}>Press or hit ⏎ to add</button>
       <button style={{...buttonStyle, background: 'green', transform: 'rotate(1deg)'}} onClick={handleExport}>Export random 50 words</button>
+      {didCopy && <p>wow you copied some words to clipboard</p>}
     </div>
   )
 }
