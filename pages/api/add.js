@@ -5,7 +5,7 @@ import dbConfig from '../../constants/dbConfig'
 export default (req, res) => {
   const { word } = req.query;
 
-  if (!/^[a-zA-Z\s]+$/.test(word)) {)
+  if (!/^[a-zA-Z\s$]+$/.test(word)) {
     res.send({status: 'error', message: 'Dont be terrible, letters and spaces only'})
     res.end()
     return;
