@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 
 const buttonStyle = {
   marginTop: 16,
@@ -10,10 +10,19 @@ const buttonStyle = {
   color: 'white'
 }
 
+const fetchWords = async () => {
+  const response = await fetch(`/api/getAll`)
+    if (response.ok) {
+      const { data } = await response.json()
+      return  data
+    }
+    return []
+}
 
 export default function Home() {
 
   const [word, setWord] = useState('')
+  const [words, setWords] = useState([])
   const [isSaving, setIsSaving] = useState(false)
   const [hasError, setHasError] = useState(false);
   const [didSave, setDidSave] = useState(false);
@@ -35,10 +44,7 @@ export default function Home() {
   }
 
   const handleExport = async () => {
-    const response = await fetch(`/api/getAll`)
-    if (response.ok) {
-      const { data } = await response.json()
-      let words = [...data]
+      let words = await fetchWords()
       const randomWords = []
 
       for(let i = 50; i > 0; i--) {
@@ -56,12 +62,28 @@ export default function Home() {
               setDidCopy(false)
             }, 3000)
           })
-    }
   }
+
+  useEffect(() => {
+    const loadWords = async () => {
+      setWords(await fetchWords());
+    }
+    loadWords()
+  }, [])
+
+  useEffect(() => {
+    if (didSave) {
+      const loadWords = async () => {
+      setWords(await fetchWords());
+      }
+      loadWords()
+    }
+  }, [didSave])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: 500, width: 'calc(100vw - 16px)', margin: 'auto', fontFamily: 'sans-serif'}}>
       <h1 style={{ fontSize: 100, transform: 'rotate(1deg)'}}>WORDS</h1>
+      <p>{!!words.length && `There are ${words.length} words atm`}</p>
       <input
         style={{
           fontSize: 42,
@@ -81,6 +103,7 @@ export default function Home() {
       <button style={{...buttonStyle, transform: 'rotate(0.5deg)'}} disabled={isSaving} onClick={handleAdd}>Press or hit ⏎ to add</button>
       <button style={{...buttonStyle, background: 'green', transform: 'rotate(1deg)'}} onClick={handleExport}>Export random 50 words</button>
       {didCopy && <p>wow you copied some words to clipboard</p>}
+
     </div>
   )
 }
