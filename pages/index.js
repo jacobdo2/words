@@ -10,6 +10,8 @@ const buttonStyle = {
   color: 'white'
 }
 
+const EXPORT_WORD_COUNT = 75
+
 const fetchWords = async () => {
   const response = await fetch(`/api/getAll`)
     if (response.ok) {
@@ -47,7 +49,7 @@ export default function Home() {
       let words = await fetchWords()
       const randomWords = []
 
-      for(let i = 50; i > 0; i--) {
+      for(let i = EXPORT_WORD_COUNT; i > 0; i--) {
         const randomIndex = Math.floor(Math.random() * words.length)
         randomWords.push(words[randomIndex])
         words = [...words.slice(0, randomIndex), ...words.slice(randomIndex + 1)]
@@ -101,7 +103,7 @@ export default function Home() {
            transform: 'rotate(-1deg)'}}>Will not save that bs</p>}
       {didSave && <p style={{ color:'green', width: '100%', display: 'flex', marginLeft: 32}}>Cool word bro</p>}
       <button style={{...buttonStyle, transform: 'rotate(0.5deg)'}} disabled={isSaving} onClick={handleAdd}>Press or hit ⏎ to add</button>
-      <button style={{...buttonStyle, background: 'green', transform: 'rotate(1deg)'}} onClick={handleExport}>Export random 50 words</button>
+      <button style={{...buttonStyle, background: 'green', transform: 'rotate(1deg)'}} onClick={handleExport}>Export random {EXPORT_WORD_COUNT} words</button>
       {didCopy && <p>wow you copied some words to clipboard</p>}
 
     </div>
